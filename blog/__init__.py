@@ -6,6 +6,7 @@ from blog.settings import config
 from blog.blueprints.auth import auth
 from blog.blueprints.admin import admin
 from blog.blueprints.blog import blog
+from blog.models import Admin, Category
 
 from blog.extensions import bootstrap, db, moment, ckeditor, mail
 
@@ -24,7 +25,7 @@ def create_app(config_name=None):
     register_errors(app)
     register_commands(app)
     register_shell_context(app)
-    register_tempalte_context(app)
+    register_tempalate_context(app)
 
     return app
 
@@ -53,8 +54,12 @@ def register_shell_context(app):
         return dict(db=db)
 
 
-def register_tempalte_context(app):
-    pass
+def register_tempalate_context(app):
+    @app.context_processor
+    def make_template_context():
+        admin = Admin.query.first()
+        categories = Category.query.order_by(Category.name).all()
+        return dict(admin=admin, categories=categories)
 
 
 def register_errors(app):
