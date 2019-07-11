@@ -1,11 +1,14 @@
-from flask import Blueprint, render_template, redirect
+from flask import Blueprint, render_template
+
+from blog.models import Post
 
 blog_bp = Blueprint('blog', __name__)
 
 
 @blog_bp.route('/')
 def index():
-    return render_template('blog/index.html')
+    posts = Post.query.order_by(Post.timestamp.desc()).all()
+    return render_template('blog/index.html', posts=posts)
 
 
 @blog_bp.route('/about')
