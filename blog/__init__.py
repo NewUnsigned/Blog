@@ -8,14 +8,16 @@ from blog.blueprints.admin import admin
 from blog.blueprints.blog import blog
 from blog.models import Admin, Category
 
-from blog.extensions import bootstrap, db, moment, ckeditor, mail
+from flask_login import current_user
+
+from blog.extensions import bootstrap, db, moment, ckeditor, mail, login_manager, csrf
+from flask_wtf.csrf import CSRFError
 
 
 # 程序入口
 def create_app(config_name=None):
     if config_name is None:
         config_name = os.getenv('FLASK_CONFIG', 'development')
-
     app = Flask('blog')
     app.config.from_object(config[config_name])
 
@@ -40,6 +42,8 @@ def register_extensions(app):
     moment.init_app(app)
     ckeditor.init_app(app)
     mail.init_app(app)
+    login_manager.init_app(app)
+    csrf.init_app(app)
 
 
 def register_blueprints(app):
@@ -67,8 +71,65 @@ def register_errors(app):
     def bad_request(e):
         return render_template('errors/400.html'), 400
 
+    @app.errorhandler(404)
+    def bad_request(e):
+        return render_template('errors/404.html'), 404
+
+    @app.errorhandler(500)
+    def bad_request(e):
+        return render_template('errors/500.html'), 500
+
+    @app.errorhandler(CSRFError)
+    def bad_request(e):
+        return render_template('errors/400.html', description=e.description), 400
+
 
 def register_commands(app):
+    @app.cli.command()
+    @click.option('--drop', is_flag=True, help='Create after drop')
+    def initdb(drop):
+        if drop:
+            click.confirm('This operation will delete the database, do you want to continue?', abort=True)
+            db.drop_all()
+            click.echo('Drop tables')
+        db.create_all()
+        click.echo('Initialized database')
+
+    @app.cli.command()
+    @click.option('--username', prompt=True, help='The username used to login.')
+    @click.option('--password', prompt=True, help='The password used to login.')
+    def init(username, password):
+        click.echo('Initializing thme database...')
+        db.create_all()
+
+        admin = Admin.query.first()
+
+        if admin is not None:
+            click.echo('The administrator already exists, updating...')
+            admin.username = username
+            admin.set_password(password)
+
+        else:
+            click.echo('Create the temporary administrator account...')
+            admin = Admin(
+                username=username,
+                blog_title='Blog',
+                blog_sub_title='No, I`am the real thing.',
+                name='Admin',
+                about='Anything about you.'
+            )
+            admin.set_password(password)
+            db.session.add(admin)
+
+        category = Category.query.first()
+        if category is None:
+            click.echo('Creating the default category...')
+            category = Category(name='Default')
+            db.session.add(category)
+
+        db.session.commit()
+        click.echo('Done.')
+
     @app.cli.command()
     @click.option('--category', default=10, help='Quantity of categories')
     @click.option('--post', default=50, help='Quantity of posts')
