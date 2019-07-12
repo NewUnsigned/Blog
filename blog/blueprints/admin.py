@@ -1,6 +1,13 @@
-from flask import Blueprint
+from flask import Blueprint, render_template
+from flask_login import login_required
 
 admin = Blueprint('admin', __name__)
+
+
+@admin.before_request
+@login_required
+def login_protect():
+    pass
 
 
 @admin.route('/new_post')
@@ -40,4 +47,4 @@ def manage_comment():
 
 @admin.route('/settings')
 def settings():
-    print('settings')
+    return render_template('/admin/settings.html')
