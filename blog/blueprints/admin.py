@@ -1,6 +1,8 @@
-from flask import Blueprint, render_template, request, current_app
+from flask import Blueprint, render_template, request, current_app, flash
 from flask_login import login_required
 from blog.models import Post
+from blog.extensions import db
+from blog.utils import redirect_back
 
 admin = Blueprint('admin', __name__)
 
@@ -36,9 +38,13 @@ def manage_post():
     return render_template('admin/manage_post.html', pagination=pagination, posts=posts, page=page)
 
 
-@admin.route('/delete_post', methods=['POST'])
-def delete_post(post_id=None, next=None):
-    print('delete_post')
+@admin.route('/post/<int:post_id>/delete', methods=['POST'])
+def delete_post(post_id):
+    post = Post.query.get_or_404(post_id)
+    db.session.delete(post)
+    db.session.commit()
+    flash('Post deleted.', 'success')
+    return redirect_back()
 
 
 @admin.route('/edit_post')
