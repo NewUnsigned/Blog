@@ -6,7 +6,7 @@ from blog.settings import config
 from blog.blueprints.auth import auth
 from blog.blueprints.admin import admin
 from blog.blueprints.blog import blog
-from blog.models import Admin, Category
+from blog.models import Admin, Category, Comment
 
 from flask_login import current_user
 
@@ -63,7 +63,11 @@ def register_tempalate_context(app):
     def make_template_context():
         admin = Admin.query.first()
         categories = Category.query.order_by(Category.name).all()
-        return dict(admin=admin, categories=categories)
+        if current_user.is_authenticated:
+            unread_comments = Comment.query.filter_by(reviewed=False).count()
+        else:
+            unread_comments = None
+        return dict(admin=admin, categories=categories,unread_comments=unread_comments)
 
 
 def register_errors(app):
@@ -113,7 +117,7 @@ def register_commands(app):
             click.echo('Create the temporary administrator account...')
             admin = Admin(
                 username=username,
-                blog_title='Blog',
+                blog_title='天涯若比邻',
                 blog_sub_title='No, I`am the real thing.',
                 name='Admin',
                 about='Anything about you.'

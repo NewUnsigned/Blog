@@ -1,5 +1,6 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, request, current_app
 from flask_login import login_required
+from blog.models import Post
 
 admin = Blueprint('admin', __name__)
 
@@ -27,7 +28,27 @@ def new_link():
 
 @admin.route('/manage_post')
 def manage_post():
-    print('manage_post')
+    page = request.args.get('page', 1, type=int)
+    pagination = Post.query.order_by(Post.timestamp.desc()).paginate(
+        page, per_page=current_app.config['BLOG_MANAGE_POST_PER_PAGE']
+    )
+    posts = pagination.items
+    return render_template('admin/manage_post.html', pagination=pagination, posts=posts, page=page)
+
+
+@admin.route('/delete_post', methods=['POST'])
+def delete_post(post_id=None, next=None):
+    print('delete_post')
+
+
+@admin.route('/edit_post')
+def edit_post():
+    print('edit_post')
+
+
+@admin.route('/set_comment')
+def set_comment():
+    print('set_comment')
 
 
 @admin.route('/manage_category')
