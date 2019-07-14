@@ -1,8 +1,9 @@
-from flask import Blueprint, render_template, request, current_app, flash
+from flask import Blueprint, render_template, request, current_app, flash, redirect, url_for
 from flask_login import login_required
-from blog.models import Post
+from blog.models import Post, Category
 from blog.extensions import db
 from blog.utils import redirect_back
+from blog.forms import PostForm
 
 admin = Blueprint('admin', __name__)
 
@@ -11,11 +12,6 @@ admin = Blueprint('admin', __name__)
 @login_required
 def login_protect():
     pass
-
-
-@admin.route('/new_post')
-def new_post():
-    print('new_post')
 
 
 @admin.route('/new_category')
@@ -28,7 +24,7 @@ def new_link():
     print('new_link')
 
 
-@admin.route('/manage_post')
+@admin.route('/post/manage')
 def manage_post():
     page = request.args.get('page', 1, type=int)
     pagination = Post.query.order_by(Post.timestamp.desc()).paginate(
@@ -36,6 +32,22 @@ def manage_post():
     )
     posts = pagination.items
     return render_template('admin/manage_post.html', pagination=pagination, posts=posts, page=page)
+
+
+@admin.route('/post/new', methods=['GET', 'POST'])
+def new_post():
+    form = PostForm()
+
+    if form.validate_on_submit():
+        title = form.title.data
+        body = form.body.data
+        category = Category.query.get(form.category.data)
+        post = Post(title=title, body=body, category=category)
+        db.session.add(post)
+        db.session.commit()
+        flash('Post Created.', 'success')
+        return redirect(url_for('blog.show_post', post_id=post.id))
+    return render_template('admin/new_post.html', form=form)
 
 
 @admin.route('/post/<int:post_id>/delete', methods=['POST'])
