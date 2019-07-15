@@ -43,6 +43,8 @@ class Post(db.Model):
     # 设置级联关系，当文章删除后，该文章的评论也一并删除
     comments = db.relationship('Comment', back_populates='post', cascade='all, delete-orphan')
 
+    can_comment = db.Column(db.Boolean, default=True)
+
 
 # 评论
 # 每篇文章都可以包含多个评论，文章和评论之间是一对多的双向关系

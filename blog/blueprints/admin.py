@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, current_app, flash, redirect, url_for
 from flask_login import login_required
-from blog.models import Post, Category
+from blog.models import Post, Category, Comment
 from blog.extensions import db
 from blog.utils import redirect_back
 from blog.forms import PostForm
@@ -59,14 +59,45 @@ def delete_post(post_id):
     return redirect_back()
 
 
-@admin.route('/edit_post')
-def edit_post():
-    print('edit_post')
+@admin.route('/post/<int:post_id>/edit', methods=['GET', 'POST'])
+def edit_post(post_id):
+    form = PostForm()
+    post = Post.query.get_or_404(post_id)
+
+    if form.validate_on_submit():
+        post.title = form.title.data
+        post.body = form.body.data
+        post.category = Category.query.get(form.category.data)
+        db.session.commit()
+        flash('Post updated.', 'success')
+
+    form.title.data = post.title
+    form.category.data = post.category_id
+    form.body.data = post.body
+    return render_template('admin/edit_post.html', form=form)
 
 
-@admin.route('/set_comment')
-def set_comment():
-    print('set_comment')
+@admin.route('/set-post/<int:post_id>', methods=['GET', 'POST'])
+def set_comment(post_id):
+    post = Post.query.get_or_404(post_id)
+
+    if post.can_comment:
+        post.can_comment = False
+        flash('Post comment disabled.', 'success')
+    else:
+        post.can_comment = True
+        flash('Post comment enabled.', 'success')
+    db.session.commit()
+    return redirect(url_for('blog.show_post', post_id=post_id))
+
+
+@admin.route('/post/<int:comment_id>/delete')
+def delete_comment(comment_id):
+    comment = Comment.query.get_or_404(comment_id)
+    db.session.delete(comment)
+    db.session.commit()
+    flash('Delete Comment.', 'success')
+    return redirect_back()
 
 
 @admin.route('/manage_category')

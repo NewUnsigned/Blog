@@ -69,6 +69,11 @@ def about():
     return render_template('blog/about.html')
 
 
+@blog.route('/comment/reply')
+def reply_comment(comment_id):
+    print('replay_comment')
+
+
 @blog.route('/category/<int:category_id>')
 def show_category(category_id):
     return render_template('blog/category.html')
