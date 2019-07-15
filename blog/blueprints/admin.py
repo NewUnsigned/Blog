@@ -3,7 +3,7 @@ from flask_login import login_required
 from blog.models import Post, Category, Comment
 from blog.extensions import db
 from blog.utils import redirect_back
-from blog.forms import PostForm
+from blog.forms import PostForm, CategoryForm
 
 admin = Blueprint('admin', __name__)
 
@@ -91,7 +91,7 @@ def set_comment(post_id):
     return redirect(url_for('blog.show_post', post_id=post_id))
 
 
-@admin.route('/post/<int:comment_id>/delete')
+@admin.route('/comment/<int:comment_id>/delete', methods=['POST'])
 def delete_comment(comment_id):
     comment = Comment.query.get_or_404(comment_id)
     db.session.delete(comment)
@@ -100,9 +100,46 @@ def delete_comment(comment_id):
     return redirect_back()
 
 
-@admin.route('/manage_category')
+@admin.route('/comment/<int:comment_id>/approve', methods=['POST'])
+def approve_comment(comment_id):
+    comment = Comment.query.get_or_404(comment_id)
+    comment.reviewed = True
+    db.session.commit()
+    flash('Comment Approved.', 'success')
+    return redirect_back()
+
+
+@admin.route('/category/manage')
 def manage_category():
-    print('manage_category')
+    categories = Category.query.all()
+    return render_template('admin/manage_category.html', categories=categories)
+
+
+@admin.route('/category/<int:category_id>/edit', methods=['POST'])
+def edit_category(category_id):
+    category = Category.query.get_or_404(category_id)
+    if category.id == 1:
+        flash('Can not edit default category', 'waring')
+        return redirect(url_for('blog.index'))
+    form = CategoryForm()
+
+    if form.validate_on_submit():
+        category.name = form.name.data
+        db.session.commit()
+        flash('Category updated.', 'success')
+        return redirect(url_for('.manage_category'))
+    form.name.data = category.name
+    return render_template('admin/edit_category.html', form=form)
+
+
+@admin.route('/category/<int:category_id>/delete', methods=['POST'])
+def delete_category(category_id):
+    category = Category.query.get_or_404(category_id)
+    if category.id == 1:
+        flash('Can not delete default category.', 'waring')
+        return redirect(url_for('blog.index'))
+    category.delete()
+    return redirect(url_for('.manage_category'))
 
 
 @admin.route('/manage_link')
@@ -110,9 +147,20 @@ def manage_link():
     print('manage_link')
 
 
-@admin.route('/manage_comment')
+@admin.route('/comment/manage')
 def manage_comment():
-    print('manage_comment')
+    filter_rule = request.args.get('filter', 'all')
+    page = request.args.get('page', 1, type=int)
+    per_page = current_app.config['BLOG_COMMENT_PER_PAGE']
+    if filter_rule == 'unread':
+        filter_comments = Comment.query.filter_by(reviewed=False)
+    elif filter_rule == 'admin':
+        filter_comments = Comment.query.filter_by(from_admin=True)
+    else:
+        filter_comments = Comment.query
+    pagination = filter_comments.order_by(Comment.timestamp.desc()).paginate(page, per_page=per_page)
+    comments = pagination.items
+    return render_template('admin/manage_comment.html', pagination=pagination, comments=comments)
 
 
 @admin.route('/settings')

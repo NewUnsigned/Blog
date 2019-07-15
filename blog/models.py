@@ -29,6 +29,14 @@ class Category(db.Model):
     # posts对应了Post的category属性
     posts = db.relationship('Post', back_populates='category')
 
+    def delete(self):
+        default_category = Category.query.get(1)
+        posts = self.posts[:]
+        for post in posts:
+            post.category = default_category
+        db.session.delete(self)
+        db.session.commit()
+
 
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
