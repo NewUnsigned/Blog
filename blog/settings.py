@@ -28,7 +28,7 @@ class BaseConfig(object):
     BLOG_MANAGE_POST_PER_PAGE = 15
     BLOG_COMMENT_PER_PAGE = 15
 
-    BLOG_THEMES = {'perfect_blue': 'Perfect Blue', 'black_swan': 'Black Swan'}
+    BLOG_THEMES = {'perfect_blue': 'Perfect Blue', 'black_swan': 'Black Swan', 'flatly': 'flatly'}
     BLOG_SLOW_QUERY_THRESHOLD = 1
 
     BLOG_UPLOAD_PATH = os.path.join(basedir, 'uploads')

@@ -4,6 +4,7 @@ from blog.models import Post, Comment, Category
 from blog.forms import AdminCommentForm, CommentForm
 from flask_login import current_user
 from blog.utils import redirect_back
+from blog.emails import send_new_comment_email, send_new_reply_email
 
 from blog.extensions import db
 
@@ -53,14 +54,14 @@ def show_post(post_id):
         if replied_id:
             replied_comment = Comment.query.get_or_404(replied_id)
             comment.replied = replied_comment
-            # send_new_reply_email(replied_comment)
+            send_new_reply_email(replied_comment)
         db.session.add(comment)
         db.session.commit()
         if current_user.is_authenticated:
             flash('Comment published.', 'success')
         else:
             flash('Thanks, your comment will be published after reviewed.', 'info')
-            # send_new_comment_email(post)
+            send_new_comment_email(post)
         return redirect(url_for('.show_post', post_id=post_id))
     return render_template('blog/post.html', post=post, pagination=pagination, form=form, comments=comments)
 
@@ -74,7 +75,7 @@ def about():
 def reply_comment(comment_id):
     comment = Comment.query.get_or_404(comment_id)
 
-    if not comment.can_comment:
+    if not comment.post.can_comment:
         flash('Comment can not reply', 'waring')
         return redirect(url_for('.show_post', post_id=comment.post_id))
     else:
