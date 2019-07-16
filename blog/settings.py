@@ -28,6 +28,12 @@ class BaseConfig(object):
     BLOG_MANAGE_POST_PER_PAGE = 15
     BLOG_COMMENT_PER_PAGE = 15
 
+    BLOG_THEMES = {'perfect_blue': 'Perfect Blue', 'black_swan': 'Black Swan'}
+    BLOG_SLOW_QUERY_THRESHOLD = 1
+
+    BLOG_UPLOAD_PATH = os.path.join(basedir, 'uploads')
+    BLOG_ALLOWED_IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif']
+
 
 class DevelopmentConfig(BaseConfig):
     SQLALCHEMY_DATABASE_URI = prefix + os.path.join(basedir, 'data-dev.db')

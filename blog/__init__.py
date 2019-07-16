@@ -6,7 +6,7 @@ from blog.settings import config
 from blog.blueprints.auth import auth
 from blog.blueprints.admin import admin
 from blog.blueprints.blog import blog
-from blog.models import Admin, Category, Comment
+from blog.models import Admin, Category, Comment, Link
 
 from flask_login import current_user
 
@@ -63,11 +63,12 @@ def register_tempalate_context(app):
     def make_template_context():
         admin = Admin.query.first()
         categories = Category.query.order_by(Category.name).all()
+        links = Link.query.all()
         if current_user.is_authenticated:
             unread_comments = Comment.query.filter_by(reviewed=False).count()
         else:
             unread_comments = None
-        return dict(admin=admin, categories=categories,unread_comments=unread_comments)
+        return dict(admin=admin, categories=categories, unread_comments=unread_comments, links=links)
 
 
 def register_errors(app):

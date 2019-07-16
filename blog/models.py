@@ -79,3 +79,9 @@ class Comment(db.Model):
     # 回复的评论
     # remote_side为id：把id字段定义为关系的远程侧，而replied_id就相应的变为本地侧
     replied = db.relationship('Comment', back_populates='replies', remote_side=[id])
+
+
+class Link(db.Model):
+    id = db.Column(db.Integer, autoincrement=True, primary_key=True)
+    name = db.Column(db.String(20))
+    url = db.Column(db.String(255))

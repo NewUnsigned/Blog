@@ -1,8 +1,9 @@
-from flask import Blueprint, render_template, request, current_app, url_for, flash, redirect
+from flask import Blueprint, render_template, request, current_app, url_for, flash, redirect, abort, make_response
 
-from blog.models import Post, Comment
+from blog.models import Post, Comment, Category
 from blog.forms import AdminCommentForm, CommentForm
 from flask_login import current_user
+from blog.utils import redirect_back
 
 from blog.extensions import db
 
@@ -69,11 +70,34 @@ def about():
     return render_template('blog/about.html')
 
 
-@blog.route('/comment/reply')
+@blog.route('/comment/<int:comment_id>/reply')
 def reply_comment(comment_id):
-    print('replay_comment')
+    comment = Comment.query.get_or_404(comment_id)
+
+    if not comment.can_comment:
+        flash('Comment can not reply', 'waring')
+        return redirect(url_for('.show_post', post_id=comment.post_id))
+    else:
+        return redirect(
+            url_for('.show_post', post_id=comment.post_id, reply=comment_id, author=comment.author) + '#comment-form'
+        )
 
 
 @blog.route('/category/<int:category_id>')
 def show_category(category_id):
-    return render_template('blog/category.html')
+    category = Category.query.get_or_404(category_id)
+    page = request.args.get('page', 1, type=int)
+    per_page = current_app.config['BLOG_POST_PER_PAGE']
+    pagination = Post.query.with_parent(category).order_by(Post.timestamp.desc()).paginate(page, per_page)
+    posts = pagination.items
+    return render_template('blog/category.html', category=category, pagination=pagination, posts=posts)
+
+
+@blog.route('/change-theme/<theme_name>')
+def change_theme(theme_name):
+    if theme_name not in current_app.config['BLOG_THEMES'].keys():
+        abort(404)
+
+    response = make_response(redirect_back())
+    response.set_cookie('theme', theme_name, max_age=30 * 24 * 60 * 60)
+    return response

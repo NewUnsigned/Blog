@@ -1,9 +1,9 @@
 from flask import Blueprint, render_template, request, current_app, flash, redirect, url_for
 from flask_login import login_required
-from blog.models import Post, Category, Comment
+from blog.models import Post, Category, Comment, Link, Admin
 from blog.extensions import db
 from blog.utils import redirect_back
-from blog.forms import PostForm, CategoryForm
+from blog.forms import PostForm, CategoryForm, LinkForm, SettingForm
 
 admin = Blueprint('admin', __name__)
 
@@ -16,12 +16,14 @@ def login_protect():
 
 @admin.route('/new_category')
 def new_category():
-    print('new_category')
-
-
-@admin.route('/new_link')
-def new_link():
-    print('new_link')
+    form = CategoryForm()
+    if form.validate_on_submit():
+        name = form.name.data
+        category = Category(name=name)
+        db.session.add(category)
+        db.session.commit()
+        return redirect_back()
+    return render_template('admin/new_category.html', form=form)
 
 
 @admin.route('/post/manage')
@@ -77,38 +79,6 @@ def edit_post(post_id):
     return render_template('admin/edit_post.html', form=form)
 
 
-@admin.route('/set-post/<int:post_id>', methods=['GET', 'POST'])
-def set_comment(post_id):
-    post = Post.query.get_or_404(post_id)
-
-    if post.can_comment:
-        post.can_comment = False
-        flash('Post comment disabled.', 'success')
-    else:
-        post.can_comment = True
-        flash('Post comment enabled.', 'success')
-    db.session.commit()
-    return redirect(url_for('blog.show_post', post_id=post_id))
-
-
-@admin.route('/comment/<int:comment_id>/delete', methods=['POST'])
-def delete_comment(comment_id):
-    comment = Comment.query.get_or_404(comment_id)
-    db.session.delete(comment)
-    db.session.commit()
-    flash('Delete Comment.', 'success')
-    return redirect_back()
-
-
-@admin.route('/comment/<int:comment_id>/approve', methods=['POST'])
-def approve_comment(comment_id):
-    comment = Comment.query.get_or_404(comment_id)
-    comment.reviewed = True
-    db.session.commit()
-    flash('Comment Approved.', 'success')
-    return redirect_back()
-
-
 @admin.route('/category/manage')
 def manage_category():
     categories = Category.query.all()
@@ -142,9 +112,48 @@ def delete_category(category_id):
     return redirect(url_for('.manage_category'))
 
 
-@admin.route('/manage_link')
+@admin.route('/link/manage')
 def manage_link():
-    print('manage_link')
+    links = Link.query.all()
+    return render_template('admin/manage_link.html', links=links)
+
+
+@admin.route('/link/new', methods=['GET', 'POST'])
+def new_link():
+    form = LinkForm()
+
+    if form.validate_on_submit():
+        name = form.name.data
+        url = form.url.data
+        link = Link(name=name, url=url)
+        db.session.add(link)
+        db.session.commit()
+        return redirect(url_for('admin.manage_link'))
+    return render_template('admin/new_link.html', form=form)
+
+
+@admin.route('/link/<int:link_id>/edit', methods=['POST'])
+def edit_link(link_id):
+    link = Link.query.get_or_404(link_id)
+    form = LinkForm()
+
+    if form.validate_on_submit():
+        link.name = form.name.data
+        link.url = form.url.data
+        db.session.commit()
+        return redirect_back()
+
+    form.name.data = link.name
+    form.url.data = link.url
+    return render_template('admin/edit_link.html', form=form)
+
+
+@admin.route('/link/<int:link_id>/delete',  methods=['POST'])
+def delete_link(link_id):
+    link = Link.query.get_or_404(link_id)
+    db.session.delete(link)
+    db.session.commit()
+    return redirect_back()
 
 
 @admin.route('/comment/manage')
@@ -163,6 +172,53 @@ def manage_comment():
     return render_template('admin/manage_comment.html', pagination=pagination, comments=comments)
 
 
-@admin.route('/settings')
+@admin.route('/set-post/<int:post_id>', methods=['GET', 'POST'])
+def set_comment(post_id):
+    post = Post.query.get_or_404(post_id)
+
+    if post.can_comment:
+        post.can_comment = False
+        flash('Post comment disabled.', 'success')
+    else:
+        post.can_comment = True
+        flash('Post comment enabled.', 'success')
+    db.session.commit()
+    return redirect(url_for('blog.show_post', post_id=post_id))
+
+
+@admin.route('/comment/<int:comment_id>/delete', methods=['POST'])
+def delete_comment(comment_id):
+    comment = Comment.query.get_or_404(comment_id)
+    db.session.delete(comment)
+    db.session.commit()
+    flash('Delete Comment.', 'success')
+    return redirect_back()
+
+
+@admin.route('/comment/<int:comment_id>/approve', methods=['POST'])
+def approve_comment(comment_id):
+    comment = Comment.query.get_or_404(comment_id)
+    comment.reviewed = True
+    db.session.commit()
+    flash('Comment Approved.', 'success')
+    return redirect_back()
+
+
+@admin.route('/settings', methods=['GET', 'POST'])
 def settings():
-    return render_template('/admin/settings.html')
+    admin = Admin.query.first()
+    form = SettingForm()
+    if form.validate_on_submit():
+        admin.blog_title = form.blog_title.data
+        admin.blog_sub_title = form.blog_sub_title.data
+        admin.about = form.about.data
+        admin.name = form.name.data
+        db.session.commit()
+        return redirect(url_for('blog.index'))
+
+    form.name.data = admin.name
+    form.blog_title.data = admin.blog_title
+    form.blog_sub_title.data = admin.blog_sub_title
+    form.about.data = admin.about
+
+    return render_template('/admin/settings.html', form=form)
