@@ -10,7 +10,7 @@ from blog.models import Admin, Category, Comment, Link
 
 from flask_login import current_user
 
-from blog.extensions import bootstrap, db, moment, ckeditor, mail, login_manager, csrf
+from blog.extensions import bootstrap, db, moment, ckeditor, mail, login_manager, csrf, migrate
 from flask_wtf.csrf import CSRFError
 
 
@@ -44,6 +44,7 @@ def register_extensions(app):
     mail.init_app(app)
     login_manager.init_app(app)
     csrf.init_app(app)
+    migrate.init_app(app, db)
 
 
 def register_blueprints(app):
