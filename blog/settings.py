@@ -1,6 +1,5 @@
 import os
 import sys
-
 basedir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 
 
@@ -12,12 +11,18 @@ else:
 
 
 class BaseConfig(object):
-    SECRET_KEY = os.getenv('SECRET_KEY', 'secret string')
+    SECRET_KEY = os.getenv('SECRET_KEY', 'b5ad041639b7451c837ec5db96f96219')
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+    DEBUG_TB_INTERCEPT_REDIRECTS = False
+
+    SQLALCHEMY_COMMIT_TEARDOWN = True
+    SQLALCHEMY_TRACK_MODIFICATIONS = True
+    SQLALCHEMY_COMMIT_ON_TEARDOWN = True
+
     MAIL_SERVER = os.getenv('MAIL_SERVER')
-    MAI_PORT = 465
+    MAIL_PORT = 465
     MAIL_USE_SSL = True
     MAIL_USERNAME = os.getenv('MAIL_USERNAME')
     MAIL_PASSWORD = os.getenv('MAIL_PASSWORD')
