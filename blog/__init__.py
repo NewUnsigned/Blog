@@ -120,7 +120,7 @@ def register_commands(app):
             click.echo('Create the temporary administrator account...')
             admin = Admin(
                 username=username,
-                blog_title='天涯若比邻',
+                blog_title='我的',
                 blog_sub_title='No, I`am the real thing.',
                 name='Admin',
                 about='Anything about you.'
