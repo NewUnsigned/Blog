@@ -27,7 +27,10 @@
     </div>
     <div class="row">
         <div class="col-sm-8">
-            {{ post.body|safe }}
+            <div class="content" id="fancy-content">
+                        {{ post.body_html| safe }}
+            </div>
+            <!-- {{ post.body_html|safe }} -->
             <hr>
             <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target=".postLinkModal">Share
             </button>
@@ -144,3 +147,13 @@
         </div>
     </div>
 {% endblock %}
+
+    <link href="{{ url_for('static', filename='editormd/css/editormd.preview.min.css') }}" rel="stylesheet" />  
+    <link href="{{ url_for('static', filename='editormd/css/editormd.css') }}" rel="stylesheet" /> 
+    <!--以下是js部分 -->
+    <script type="text/javascript" src="{{ url_for('static', filename='editormd/lib/marked.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='editormd/lib/prettify.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='editormd/editormd.min.js') }}"></script>
+    <script type="text/javascript">
+        editormd.markdownToHTML("fancy-content");
+    </script>

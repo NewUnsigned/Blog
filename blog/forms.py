@@ -23,7 +23,8 @@ class SettingForm(FlaskForm):
 class PostForm(FlaskForm):
     title = StringField('Title', validators=[DataRequired(), Length(1, 60)])
     category = SelectField('Category', coerce=int, default=1)
-    body = CKEditorField('Body', validators=[DataRequired()])
+    body = TextAreaField('Body', validators=[DataRequired()])
+    # body_html = HiddenField()
     submit = SubmitField()
 
     def __init__(self, *args, **kwargs):

@@ -44,7 +44,8 @@ def new_post():
         title = form.title.data
         body = form.body.data
         category = Category.query.get(form.category.data)
-        post = Post(title=title, body=body, category=category)
+        body_html = request.form['fancy-editormd-html-code']
+        post = Post(title=title, body=body, category=category, body_html=body_html)
         db.session.add(post)
         db.session.commit()
         flash('Post Created.', 'success')
@@ -70,9 +71,11 @@ def edit_post(post_id):
         post.title = form.title.data
         post.body = form.body.data
         post.category = Category.query.get(form.category.data)
+        post.body_html = request.form['fancy-editormd-html-code']
         db.session.commit()
         flash('Post updated.', 'success')
 
+    form.body_html.data = post.body_html
     form.title.data = post.title
     form.category.data = post.category_id
     form.body.data = post.body

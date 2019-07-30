@@ -30,7 +30,6 @@ def send_mail(subject, to, html):
 
 
 def send_new_comment_email(post):
-    flash(current_app.config['BLOG_EMAIL'])
     post_url = url_for('blog.show_post', post_id=post.id, _external=True) + '#comments'
     send_mail(subject='New comment', to=current_app.config['BLOG_EMAIL'],
               html='<p>New comment in post <i>%s</i>, click the link below to check:</p>'

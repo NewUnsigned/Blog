@@ -1,25 +1,11 @@
 [[source]]
 name = "pypi"
-url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-coverage = "*"
-watchdog = "*"
-"flake8" = "*"
-faker = "*"
 
 [packages]
-flask = "*"
-flask-ckeditor = "*"
-flask-mail = "*"
-flask-sqlalchemy = "*"
-flask-wtf = "*"
-flask-moment = "*"
-python-dotenv = "*"
-bootstrap-flask = "*"
-flask-login = "*"
-flask-debugtoolbar = "*"
-gunicorn = "*"
-flask-migrate = "*"
-pymysql = "*"
+
+[requires]
+python_version = "3.7"
